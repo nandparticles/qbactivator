@@ -99,16 +99,35 @@ $ValidateQuickBooksInstaller = {
   Write-Error_UnableToVerifyInstaller
 }
 
+$Get-QuickBooksInstallerVersion = {
+  param([string]$InstallerName)
+  $match = [regex]::Match($InstallerName, 'QuickBooksPOSV(?<ver>\d+)\.exe', 'IgnoreCase')
+  if ($match.Success) { return $match.Groups['ver'].Value }
+  return $null
+}
+
 $LocateQuickBooksInstaller = {
   Write-Host "`nLocating QuickBooks POS installer..."
+  if ($null -ne $Script:INSTALLER_OBJECT -and (Test-Path $Script:INSTALLER_OBJECT -PathType Leaf)) {
+    Write-Host "Using selected installer path: $Script:INSTALLER_OBJECT"
+    $Script:INSTALLER_AVAILABLE = $true
+    if ($null -eq $Script:QB_VERSION) {
+      $version = &$Get-QuickBooksInstallerVersion (Split-Path $Script:INSTALLER_OBJECT -Leaf)
+      if ($version) { Set-Version $version }
+    }
+    return
+  }
+
   # Find which installer version is available and compare 
   # known hashes against the installer for verification
   foreach ($exe in $qbExeList) {
     if (Test-Path ".\$exe" -PathType Leaf) {
       Write-Host "Found `"$exe`""
       $Script:INSTALLER_AVAILABLE = $true
-      $Script:INSTALLER_OBJECT = $exe
-      Set-Version ($exe.Trim("QuickBooksPOSV.exe"))
+      $Script:INSTALLER_OBJECT = ".\$exe"
+      $version = &$Get-QuickBooksInstallerVersion $exe
+      if ($version) { Set-Version $version }
+      return
     }
   }
 }

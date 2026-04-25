@@ -1,6 +1,6 @@
 function Invoke-QuickBooksInstaller {  
   if ($Script:INSTALLER_AVAILABLE) {
-    Start-Installer .\$Script:INSTALLER_OBJECT
+    Start-Installer $Script:INSTALLER_OBJECT
   }
   else {
     Write-Host "A QuickBooks POS installer was not found." -ForegroundColor Yellow

@@ -69,6 +69,7 @@ function Write-Menu_SubMenu {
   Write-Host "2 - Activate Only"
   Write-Host "3 - Install Only"
   Write-Host "4 - Download a POS installer"
+  Write-Host "5 - Select a local POS installer"
   
   Write-Host "0 - Cancel"
   $query = Read-Host "`n#"
@@ -104,6 +105,11 @@ function Write-Menu_SubMenu {
     4 {
       $Script:INSTALLER_DOWNLOAD_ONLY = $true
       Invoke-NextProcess $PROC_DOWNLOAD
+      break
+    }
+    5 {
+      Select-QuickBooksInstallerPath
+      Write-Menu_SubMenu
       break
     }
     default { Write-Menu_SubMenu; break }

@@ -60,6 +60,42 @@ function Select-QuickBooksVersion {
   }
 }
 
+function Select-QuickBooksInstallerPath {
+  while ($true) {
+    $installer_path = Read-Host "Enter full path to QuickBooks POS installer executable (or 0 to cancel)"
+    if ($installer_path -eq "0" -or [string]::IsNullOrWhiteSpace($installer_path)) {
+      Write-Action_OperationCancelled
+      return
+    }
+
+    $resolved = Resolve-Path -Path $installer_path -ErrorAction SilentlyContinue
+    if ($null -eq $resolved) {
+      Write-Host "File not found. Please enter an existing file path." -ForegroundColor Yellow
+      continue
+    }
+
+    $fullPath = $resolved[0].ProviderPath
+    if (-not($fullPath.EndsWith('.exe', [System.StringComparison]::InvariantCultureIgnoreCase))) {
+      Write-Host "Please select a valid .exe installer file." -ForegroundColor Yellow
+      continue
+    }
+
+    $fileName = Split-Path $fullPath -Leaf
+    $version = &$Get-QuickBooksInstallerVersion $fileName
+    if (-not $version) {
+      Write-Host "Installer filename does not match QuickBooksPOSV##.exe." -ForegroundColor Yellow
+      continue
+    }
+
+    $Script:INSTALLER_OBJECT = $fullPath
+    $Script:INSTALLER_PATH = $fullPath
+    $Script:INSTALLER_AVAILABLE = $true
+    Set-Version $version
+    Write-Host "Selected installer path: $fullPath"
+    return
+  }
+}
+
 function Get-QuickBooksObject {
   <#
   .SYNOPSIS
